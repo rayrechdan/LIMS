@@ -1,0 +1,564 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ─── USERS, AUTH, ROLES ─────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         String    @default("TECHNICIAN") // ADMIN, LAB_MANAGER, PATHOLOGIST, TECHNICIAN, RECEPTIONIST, DOCTOR, PATIENT
+  department   String?
+  licenseNo    String?
+  phone        String?
+  isActive     Boolean   @default(true)
+  language     String    @default("en") // en | ar
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  collectedSamples  Sample[]            @relation("CollectedBy")
+  receivedSamples   Sample[]            @relation("ReceivedBy")
+  enteredResults    Result[]            @relation("EnteredBy")
+  validatedResults  Result[]            @relation("ValidatedBy")
+  signedReports     Report[]            @relation("SignedBy")
+  auditLogs         AuditLog[]
+  custodyEvents     ChainOfCustody[]
+  inventoryMoves    InventoryMovement[]
+  sessions          Session[]
+  accounts          Account[]
+  patientLink       Patient?            @relation("PatientUser")
+  doctorLink        Doctor?             @relation("DoctorUser")
+
+  @@index([email])
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── BRANCHES ───────────────────────────────────────────────────────
+
+model Branch {
+  id              String   @id @default(cuid())
+  name            String
+  nameAr          String?
+  code            String   @unique
+  address         String?
+  city            String?
+  phone           String?
+  email           String?
+  managerName     String?
+  managerPhone    String?
+  isActive        Boolean  @default(true)
+  isMain          Boolean  @default(false)
+  homeCollection  Boolean  @default(false)
+  collectionZone  String?  // free-text zone description
+  services        String?  // CSV of service keys: PHLEBOTOMY, IMAGING, COVID, etc
+  hours           String?  // JSON: { mon: { open: "08:00", close: "18:00", closed: false }, ... }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([code])
+}
+
+// ─── LAB CONFIGURATION ──────────────────────────────────────────────
+
+model LabSettings {
+  id              String   @id @default(cuid())
+  labName         String
+  labNameAr       String?
+  address         String?
+  phone           String?
+  email           String?
+  licenseNumber   String?
+  logoUrl         String?
+  reportFooter    String?
+  reportFooterAr  String?
+  defaultTimezone String   @default("Asia/Beirut")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── PATIENTS ───────────────────────────────────────────────────────
+
+model Patient {
+  id              String    @id @default(cuid())
+  mrn             String    @unique // Medical Record Number
+  firstName       String
+  lastName        String
+  firstNameAr     String?
+  lastNameAr      String?
+  dateOfBirth     DateTime
+  gender          String    // MALE, FEMALE, OTHER
+  nationalId      String?
+  phone           String?
+  email           String?
+  address         String?
+  bloodType       String?
+  allergies       String?
+  notes           String?
+  insuranceName   String?
+  insuranceNumber String?
+  userId          String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user    User?    @relation("PatientUser", fields: [userId], references: [id], onDelete: SetNull)
+  samples Sample[]
+  orders  TestOrder[]
+
+  @@index([mrn])
+  @@index([lastName, firstName])
+}
+
+// ─── DOCTORS / REFERRING PHYSICIANS ─────────────────────────────────
+
+model Doctor {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  firstNameAr String?
+  lastNameAr  String?
+  specialty   String?
+  licenseNo   String?
+  phone       String?
+  email       String?
+  clinic      String?
+  userId      String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user   User?       @relation("DoctorUser", fields: [userId], references: [id], onDelete: SetNull)
+  orders TestOrder[]
+
+  @@index([lastName, firstName])
+}
+
+// ─── TEST CATALOG ───────────────────────────────────────────────────
+
+model TestCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  nameAr    String?
+  icon      String?
+  sortOrder Int      @default(0)
+
+  tests Test[]
+}
+
+model Test {
+  id              String   @id @default(cuid())
+  code            String   @unique // e.g. CBC, BMP, LFT
+  name            String
+  nameAr          String?
+  description     String?
+  categoryId      String
+  specimenType    String   // BLOOD, URINE, STOOL, TISSUE, SWAB, etc
+  containerType   String?  // EDTA, SST, etc
+  price           Float    @default(0)
+  turnaroundHours Int      @default(24)
+  method          String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category   TestCategory   @relation(fields: [categoryId], references: [id])
+  parameters TestParameter[]
+  orderItems TestOrderItem[]
+
+  @@index([code])
+  @@index([categoryId])
+}
+
+model TestParameter {
+  id           String  @id @default(cuid())
+  testId       String
+  code         String  // e.g. WBC, RBC, HGB
+  name         String
+  nameAr       String?
+  unit         String?
+  refRangeLow  Float?
+  refRangeHigh Float?
+  refRangeText String? // for non-numeric ranges (e.g. "Negative")
+  decimals     Int     @default(2)
+  sortOrder    Int     @default(0)
+
+  test    Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  results Result[]
+  ranges  ReferenceRange[]
+
+  @@unique([testId, code])
+  @@index([testId])
+}
+
+model ReferenceRange {
+  id          String  @id @default(cuid())
+  parameterId String
+  gender      String  // MALE, FEMALE, ALL
+  ageMin      Int     @default(0)    // years
+  ageMax      Int     @default(120)
+  low         Float?
+  high        Float?
+  text        String?
+
+  parameter TestParameter @relation(fields: [parameterId], references: [id], onDelete: Cascade)
+
+  @@index([parameterId])
+}
+
+// ─── TEST ORDERS ────────────────────────────────────────────────────
+
+model TestOrder {
+  id            String    @id @default(cuid())
+  orderNumber   String    @unique
+  patientId     String
+  doctorId      String?
+  priority      String    @default("ROUTINE") // STAT, URGENT, ROUTINE
+  status        String    @default("PENDING") // PENDING, COLLECTED, IN_PROGRESS, COMPLETED, CANCELLED
+  diagnosis     String?
+  clinicalNotes String?
+  totalPrice    Float     @default(0)
+  paymentStatus String    @default("UNPAID") // UNPAID, PARTIAL, PAID
+  orderedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  patient Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  Doctor?         @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  items   TestOrderItem[]
+  samples Sample[]
+
+  @@index([orderNumber])
+  @@index([patientId])
+  @@index([status])
+  @@index([priority])
+}
+
+model TestOrderItem {
+  id      String  @id @default(cuid())
+  orderId String
+  testId  String
+  price   Float   @default(0)
+
+  order TestOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  test  Test      @relation(fields: [testId], references: [id])
+
+  @@unique([orderId, testId])
+}
+
+// ─── SAMPLES ────────────────────────────────────────────────────────
+
+model Sample {
+  id            String    @id @default(cuid())
+  barcode       String    @unique
+  orderId       String
+  patientId     String
+  specimenType  String
+  containerType String?
+  volume        Float?
+  volumeUnit    String?   // mL, g, etc
+  status        String    @default("COLLECTED") // COLLECTED, RECEIVED, IN_PROCESS, COMPLETED, REJECTED
+  rejectReason  String?
+  collectedAt   DateTime  @default(now())
+  collectedById String?
+  receivedAt    DateTime?
+  receivedById  String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  order       TestOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  patient     Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  collectedBy User?             @relation("CollectedBy", fields: [collectedById], references: [id], onDelete: SetNull)
+  receivedBy  User?             @relation("ReceivedBy", fields: [receivedById], references: [id], onDelete: SetNull)
+  results     Result[]
+  custody     ChainOfCustody[]
+
+  @@index([barcode])
+  @@index([status])
+  @@index([orderId])
+  @@index([patientId])
+}
+
+model ChainOfCustody {
+  id        String   @id @default(cuid())
+  sampleId  String
+  userId    String
+  action    String   // COLLECTED, TRANSFERRED, RECEIVED, STORED, ANALYZED, DISPOSED
+  location  String?
+  notes     String?
+  timestamp DateTime @default(now())
+
+  sample Sample @relation(fields: [sampleId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sampleId])
+  @@index([timestamp])
+}
+
+// ─── RESULTS ────────────────────────────────────────────────────────
+
+model Result {
+  id            String    @id @default(cuid())
+  sampleId      String
+  parameterId   String
+  valueNumeric  Float?
+  valueText     String?
+  flag          String?   // NORMAL, LOW, HIGH, CRITICAL_LOW, CRITICAL_HIGH, ABNORMAL
+  status        String    @default("PENDING") // PENDING, ENTERED, VALIDATED, AMENDED
+  enteredById   String?
+  enteredAt     DateTime?
+  validatedById String?
+  validatedAt   DateTime?
+  comment       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sample      Sample        @relation(fields: [sampleId], references: [id], onDelete: Cascade)
+  parameter   TestParameter @relation(fields: [parameterId], references: [id], onDelete: Cascade)
+  enteredBy   User?         @relation("EnteredBy", fields: [enteredById], references: [id], onDelete: SetNull)
+  validatedBy User?         @relation("ValidatedBy", fields: [validatedById], references: [id], onDelete: SetNull)
+
+  @@unique([sampleId, parameterId])
+  @@index([status])
+}
+
+// ─── REPORTS ────────────────────────────────────────────────────────
+
+model Report {
+  id          String    @id @default(cuid())
+  reportNumber String   @unique
+  orderId     String
+  status      String    @default("DRAFT") // DRAFT, SIGNED, RELEASED, AMENDED
+  signedById  String?
+  signedAt    DateTime?
+  releasedAt  DateTime?
+  pdfPath     String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  signedBy User? @relation("SignedBy", fields: [signedById], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([status])
+}
+
+// ─── INVENTORY ──────────────────────────────────────────────────────
+
+model InventoryItem {
+  id           String   @id @default(cuid())
+  sku          String   @unique
+  name         String
+  nameAr       String?
+  category     String   // REAGENT, CONSUMABLE, EQUIPMENT
+  unit         String   // mL, box, piece
+  minStock     Float    @default(0)
+  currentStock Float    @default(0)
+  supplier     String?
+  notes        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  lots      InventoryLot[]
+  movements InventoryMovement[]
+
+  @@index([sku])
+  @@index([category])
+}
+
+model InventoryLot {
+  id         String    @id @default(cuid())
+  itemId     String
+  lotNumber  String
+  quantity   Float
+  expiryDate DateTime?
+  receivedAt DateTime  @default(now())
+  notes      String?
+
+  item      InventoryItem       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  movements InventoryMovement[]
+
+  @@index([itemId])
+  @@index([expiryDate])
+}
+
+model InventoryMovement {
+  id        String   @id @default(cuid())
+  itemId    String
+  lotId     String?
+  type      String   // IN, OUT, ADJUSTMENT
+  quantity  Float
+  reason    String?
+  userId    String
+  timestamp DateTime @default(now())
+
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  lot  InventoryLot? @relation(fields: [lotId], references: [id], onDelete: SetNull)
+  user User          @relation(fields: [userId], references: [id])
+
+  @@index([itemId])
+  @@index([timestamp])
+}
+
+// ─── INSTRUMENTS ────────────────────────────────────────────────────
+
+model Instrument {
+  id                  String    @id @default(cuid())
+  name                String
+  model               String?
+  manufacturer        String?
+  serialNumber        String    @unique
+  category            String    // HEMATOLOGY, CHEMISTRY, IMMUNOASSAY, MICROBIOLOGY, GENERAL
+  status              String    @default("ONLINE") // ONLINE, OFFLINE, MAINTENANCE, ERROR
+  location            String?   // branch / room
+  ipAddress           String?
+  lastCalibrationAt   DateTime?
+  nextMaintenanceAt   DateTime?
+  installedAt         DateTime?
+  warrantyUntil       DateTime?
+  notes               String?
+  testCodes           String?   // CSV of test codes this instrument runs
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  events  InstrumentEvent[]
+  qcRuns  QCRun[]
+
+  @@index([serialNumber])
+  @@index([status])
+}
+
+model InstrumentEvent {
+  id            String   @id @default(cuid())
+  instrumentId  String
+  type          String   // CALIBRATION, MAINTENANCE, REPAIR, INSTALL, STATUS_CHANGE
+  title         String
+  description   String?
+  performedBy   String?  // technician name
+  timestamp     DateTime @default(now())
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+
+  @@index([instrumentId])
+  @@index([timestamp])
+}
+
+// ─── QUALITY CONTROL ────────────────────────────────────────────────
+
+model QCMaterial {
+  id           String   @id @default(cuid())
+  name         String   // e.g. "Bio-Rad Lyphochek L1"
+  lot          String
+  level        String   // LOW, NORMAL, HIGH
+  manufacturer String?
+  expiryDate   DateTime?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  targets QCTarget[]
+  runs    QCRun[]
+
+  @@unique([lot, level])
+  @@index([level])
+}
+
+model QCTarget {
+  id          String  @id @default(cuid())
+  materialId  String
+  parameterId String   // TestParameter.id
+  mean        Float
+  sd          Float
+
+  material QCMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, parameterId])
+}
+
+model QCRun {
+  id            String   @id @default(cuid())
+  materialId    String
+  parameterId   String
+  parameterCode String   // denormalized for fast queries (e.g. "HGB")
+  parameterName String
+  unit          String?
+  instrumentId  String?
+  value         Float
+  mean          Float
+  sd            Float
+  zScore        Float    // (value - mean) / sd
+  cv            Float    // coefficient of variation %
+  status        String   // IN_RANGE, WARNING, OUT_OF_RANGE
+  westgardRule  String?  // 1_2s, 1_3s, 2_2s, R_4s, 4_1s, 10_x
+  technicianId  String?
+  technicianName String?
+  actionTaken   String?
+  notes         String?
+  runAt         DateTime @default(now())
+
+  material   QCMaterial  @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  instrument Instrument? @relation(fields: [instrumentId], references: [id], onDelete: SetNull)
+
+  @@index([materialId])
+  @@index([parameterCode])
+  @@index([runAt])
+  @@index([status])
+}
+
+// ─── AUDIT LOG ──────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String?
+  userId     String
+  ipAddress  String?
+  userAgent  String?
+  metadata   String?
+  timestamp  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([timestamp])
+  @@index([action])
+}

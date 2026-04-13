@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* ─── BRAND ─── */
+  --color-teal: #0F6E56;
+  --color-teal-dark: #0A5743;
+  --color-teal-light: #1D9E75;
+  --color-teal-soft: #E6F4EF;
+  --color-teal-mist: #F0F9F5;
+
+  /* ─── NEUTRALS ─── */
+  --color-base: #F8F9FA;
+  --color-surface: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+  --color-ink: #111827;
+  --color-ink-soft: #374151;
+  --color-gray: #6B7280;
+  --color-gray-light: #9CA3AF;
+  --color-gray-lighter: #F3F4F6;
+
+  /* ─── STATUS ─── */
+  --color-critical: #DC2626;
+  --color-critical-soft: #FEE2E2;
+  --color-warning: #D97706;
+  --color-warning-soft: #FEF3C7;
+  --color-success: #16A34A;
+  --color-success-soft: #DCFCE7;
+  --color-info: #2563EB;
+  --color-info-soft: #DBEAFE;
+
+  /* ─── TYPOGRAPHY ─── */
+  --font-sans: 'DM Sans', -apple-system, system-ui, sans-serif;
+  --font-mono: 'DM Mono', 'JetBrains Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+
+  /* ─── SPACING ─── */
+  --radius-card: 8px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-card-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: var(--color-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html[lang="ar"] {
+  font-family: var(--font-arabic);
+  direction: rtl;
+}
+
+body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar-wrapper {
+  background: linear-gradient(180deg, #0F6E56 0%, #0B5945 60%, #084637 100%);
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-nav-item:hover {
+  transform: translateX(1px);
+}
+
+.sidebar-nav-active {
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.85);
+}
+
+.sidebar-collapse-btn {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.85);
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-wrapper:hover .sidebar-collapse-btn {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* ─── TABLES ─── */
+.lims-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.lims-table thead th {
+  background: var(--color-gray-lighter);
+  color: var(--color-gray);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.lims-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-ink-soft);
+  vertical-align: middle;
+}
+
+.lims-table tbody tr:nth-child(even) {
+  background: #FBFCFC;
+}
+
+.lims-table tbody tr:hover {
+  background: var(--color-teal-mist);
+}
+
+/* ─── FORMS ─── */
+/* :where() keeps specificity at 0 so Tailwind utility classes (pl-9, etc.) override cleanly */
+:where(
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"],
+  input[type="search"],
+  input[type="tel"],
+  select,
+  textarea
+) {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+:where(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--color-teal-light);
+  box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+}
+
+:where(input, textarea)::placeholder {
+  color: var(--color-gray-light);
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  margin-bottom: 6px;
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 5px;
+  border: 2px solid var(--color-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-light);
+}
+
+/* ─── UTILITY ─── */
+.font-mono-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
