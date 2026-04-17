@@ -145,7 +145,7 @@ export default function SampleRegisterPage() {
               </div>
 
               <div className="relative mb-3">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>
                 </svg>
                 <input
@@ -191,10 +191,10 @@ export default function SampleRegisterPage() {
               ) : (
                 <>
                   <div className="relative mb-3">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
                       <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                     </svg>
-                    <input type="search" value={patientQ} onChange={(e) => setPatientQ(e.target.value)} placeholder="Search by name or MRN…" className="pl-9" />
+                    <input type="search" value={patientQ} onChange={(e) => setPatientQ(e.target.value)} placeholder="Search by name or MRN…" className="pl-11" />
                   </div>
                   {patientQ && patients.length > 0 && (
                     <div className="border border-border rounded-lg divide-y divide-border">

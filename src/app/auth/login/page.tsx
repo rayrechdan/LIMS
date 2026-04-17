@@ -3,28 +3,43 @@
 import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!email || !password) {
+      setError("Enter both email and password");
+      return;
+    }
     setLoading(true);
     setError(null);
-    const res = await signIn("credentials", { email, password, redirect: false });
-    setLoading(false);
-    if (res?.error) {
-      setError("Invalid email or password");
-    } else {
-      router.push("/dashboard");
-      router.refresh();
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/dashboard",
+      });
+      if (!res) {
+        setError("No response from server — try again");
+      } else if (res.error) {
+        setError("Invalid email or password");
+      } else if (res.ok) {
+        window.location.href = "/dashboard";
+      } else {
+        setError("Something went wrong — try again");
+      }
+    } catch (err) {
+      setError("Connection error — check the server is running");
+    } finally {
+      setLoading(false);
     }
   }
 

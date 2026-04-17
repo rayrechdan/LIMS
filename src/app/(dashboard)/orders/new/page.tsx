@@ -156,7 +156,7 @@ function NewOrderPage() {
               ) : (
                 <div className="relative">
                   <div className="relative">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
                       <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                     </svg>
                     <input
@@ -165,7 +165,7 @@ function NewOrderPage() {
                       onChange={(e) => { setDoctorQ(e.target.value); setDoctorOpen(true); }}
                       onFocus={() => setDoctorOpen(true)}
                       placeholder="Search doctor by name or specialty…"
-                      className="pl-9"
+                      className="pl-11"
                     />
                   </div>
                   {doctorOpen && doctorQ && filteredDoctors.length > 0 && (
@@ -214,7 +214,7 @@ function NewOrderPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <div className="relative flex-1">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
                         <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                       </svg>
                       <input
@@ -222,7 +222,7 @@ function NewOrderPage() {
                         value={patientQ}
                         onChange={(e) => { setPatientQ(e.target.value); setPatientOpen(true); }}
                         placeholder="Search by name, MRN, or phone…"
-                        className="pl-9"
+                        className="pl-11"
                       />
                     </div>
                     <Link href="/patients">
@@ -259,10 +259,10 @@ function NewOrderPage() {
             </CardHeader>
             <div className="px-6 py-3 border-b border-border flex flex-wrap items-center gap-2">
               <div className="relative flex-1 max-w-xs">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
                   <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                 </svg>
-                <input type="search" value={testQ} onChange={(e) => setTestQ(e.target.value)} placeholder="Search tests…" className="pl-9" />
+                <input type="search" value={testQ} onChange={(e) => setTestQ(e.target.value)} placeholder="Search tests…" className="pl-11" />
               </div>
               <button
                 onClick={() => setActiveCategory("ALL")}

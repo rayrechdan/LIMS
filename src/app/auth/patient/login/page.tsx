@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -17,7 +17,6 @@ export default function PatientLoginWrapper() {
 }
 
 function PatientLoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const justRegistered = searchParams.get("registered") === "1";
   const { lang, setLang, t } = useLanguage();
@@ -28,17 +27,34 @@ function PatientLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!identifier || !password) {
+      setError(t("Enter both email and password", "أدخل البريد الإلكتروني وكلمة المرور"));
+      return;
+    }
     setLoading(true);
     setError(null);
-    const res = await signIn("credentials", { email: identifier, password, redirect: false });
-    setLoading(false);
-    if (res?.error) {
-      setError(t("Invalid email or password", "بريد إلكتروني أو كلمة مرور غير صحيحة"));
-    } else {
-      router.push("/portal");
-      router.refresh();
+    try {
+      const res = await signIn("credentials", {
+        email: identifier,
+        password,
+        redirect: false,
+        callbackUrl: "/portal",
+      });
+      if (!res) {
+        setError(t("No response from server", "لا استجابة من الخادم"));
+      } else if (res.error) {
+        setError(t("Invalid email or password", "بريد إلكتروني أو كلمة مرور غير صحيحة"));
+      } else if (res.ok) {
+        window.location.href = "/portal";
+      } else {
+        setError(t("Something went wrong", "حدث خطأ ما"));
+      }
+    } catch {
+      setError(t("Connection error", "خطأ في الاتصال"));
+    } finally {
+      setLoading(false);
     }
   }
 

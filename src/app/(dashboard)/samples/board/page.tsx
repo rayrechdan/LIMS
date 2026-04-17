@@ -108,10 +108,10 @@ export default function SampleBoardPage() {
       <Card>
         <div className="px-6 py-3 flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[240px] max-w-sm">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search barcode or patient…" className="pl-9" />
+            <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search barcode or patient…" className="pl-11" />
           </div>
           <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="max-w-[150px]">
             <option value="">All priorities</option>

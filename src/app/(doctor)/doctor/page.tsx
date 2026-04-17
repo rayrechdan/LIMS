@@ -139,10 +139,10 @@ export default async function DoctorDashboardPage() {
       <Card>
         <div className="px-6 py-3 border-b border-border flex items-center gap-3">
           <div className="relative flex-1 max-w-md">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray pointer-events-none">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <input type="search" placeholder="Search my patients by name or MRN…" className="pl-9" />
+            <input type="search" placeholder="Search my patients by name or MRN…" className="pl-11" />
           </div>
           <Link href="/doctor/patients" className="text-xs text-teal hover:underline ml-auto">View all patients →</Link>
         </div>
