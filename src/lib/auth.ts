@@ -36,9 +36,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await db.user.findUnique({
+        let user = await db.user.findUnique({
           where: { email: credentials.email as string },
         });
+
+        // Fall back to national ID lookup for patient portal
+        if (!user) {
+          const patient = await db.patient.findFirst({
+            where: { nationalId: credentials.email as string },
+            include: { user: true },
+          });
+          user = patient?.user ?? null;
+        }
 
         if (!user || !user.isActive) return null;
 
